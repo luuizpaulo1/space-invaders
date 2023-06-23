@@ -27,45 +27,59 @@ class SpaceInvaders:
 
         self.n_rows_enemies = 3
         self.n_columns_enemies = 5
+        self.enemy_dummy = Enemy(self)
         self.enemies = self.create_enemies(self.n_rows_enemies, self.n_columns_enemies)
 
         self.fps_counter = 0
         self.fps_display = 0
         self.fps_last_count = datetime.now()
 
+        self.score = 0
+
     @property
     def enemies_1d(self):
-        return itertools.chain.from_iterable(self.enemies)
+        return list(itertools.chain.from_iterable(self.enemies))
 
     def expire_projectiles(self):
-        for index in range(len(self.projectiles) - 1, -1, -1):
-            next_projectile = False
-            for enemy in self.enemies_1d:
-                if self.projectiles[index].collided(enemy):
-                    self.projectiles.pop(index)
-                    enemy.health -= 1
-                    next_projectile = True
-                    break
+        x_limits = (
+            min(enemy.x for enemy in self.enemies_1d),
+            max(enemy.x for enemy in self.enemies_1d) + self.enemy_dummy.width
+        )
+        y_limits = (
+            min(enemy.y for enemy in self.enemies_1d),
+            max(enemy.y for enemy in self.enemies_1d) + self.enemy_dummy.height
+        )
 
-            if next_projectile:
-                continue
+        for index_projectile in range(len(self.projectiles) - 1, -1, -1):
+            projectile = self.projectiles[index_projectile]
+            if x_limits[0] < projectile.x < x_limits[1] and y_limits[0] < projectile.y < y_limits[1]:
+                next_projectile = False
+                for index_enemy in range(len(list(self.enemies_1d)) - 1, -1, -1):
+                    enemy = self.enemies_1d[index_enemy]
+                    if projectile.collided(enemy):
+                        self.projectiles.pop(index_projectile)
+                        enemy.health -= 1
+                        next_projectile = True
+                        break
 
-            if self.projectiles[index].y < 0:
-                self.projectiles.pop(index)
+                if next_projectile:
+                    continue
+
+            if self.projectiles[index_projectile].y < 0:
+                self.projectiles.pop(index_projectile)
 
     def expire_enemies(self):
         for i in range(len(self.enemies) - 1, -1, -1):
             for j in range(len(self.enemies[i]) - 1, -1, -1):
                 if self.enemies[i][j].health <= 0:
                     self.enemies[i].pop(j)
+                    self.score += 50 * (self.n_rows_enemies - i)
             if not self.enemies[i]:
                 self.enemies.pop(i)
 
     def create_enemies(self, n_rows: int, n_columns: int):
-        dummy = Enemy(self)
-        enemy_width = dummy.width
-        enemy_height = dummy.height
-        del dummy
+        enemy_width = self.enemy_dummy.width
+        enemy_height = self.enemy_dummy.height
 
         spacing_width = enemy_width * 1.5
         spacing_height = enemy_height * 1.5
@@ -94,6 +108,9 @@ class SpaceInvaders:
 
     def show_fps(self):
         self.window.draw_text(str(self.fps_display), size=20, x=0, y=0)
+
+    def show_score(self):
+        self.window.draw_text(f"SCORE: {str(self.score)}", color="red", size=20, x=self.window.width - 130, y=0)
 
     def loop(self):
         if self.game_over or self.win:
@@ -139,3 +156,4 @@ class SpaceInvaders:
             self.finish = True
 
         self.show_fps()
+        self.show_score()

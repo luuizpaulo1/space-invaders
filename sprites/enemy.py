@@ -2,7 +2,7 @@ from PPlay.sprite import Sprite
 
 
 class Enemy(Sprite):
-    def __init__(self, space_invaders, velocity: int = 100, health=5):
+    def __init__(self, space_invaders, velocity: int = 50, health=5):
         super().__init__("./assets/enemy.png")
         self.space_invaders = space_invaders
         self.velocity = velocity
