@@ -7,11 +7,11 @@ from sprites.projectile import Projectile
 
 
 class Ship(Sprite):
-    def __init__(self, window: Window, keyboard: Keyboard, shoot_cadence: int = 60):
+    def __init__(self, space_invaders, shoot_cadence: int = 60):
         super().__init__("./assets/ship.png")
         self.velocity = 500
-        self.window = window
-        self.keyboard = keyboard
+        self.window = space_invaders.window
+        self.keyboard = space_invaders.keyboard
         self.last_shoot = None
         self.shoot_cadence = shoot_cadence  # shoots per minute
 
@@ -27,7 +27,7 @@ class Ship(Sprite):
         )
 
         if not self.last_shoot or elapsed_since_last_shoot > minimum_timedelta:
-            projectile = Projectile(window=self.window)
+            projectile = Projectile(self)
             projectile.x = self.x + self.width / 2 - projectile.width / 2
             projectile.y = self.y - 20
             self.last_shoot = now
@@ -41,5 +41,3 @@ class Ship(Sprite):
         if self.keyboard.key_pressed("SPACE"):
             return self.shoot()
 
-    def draw(self):
-        super().draw()

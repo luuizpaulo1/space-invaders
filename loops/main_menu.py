@@ -34,6 +34,26 @@ class MainMenu:
                 self.space_invaders.loop()
                 if self.space_invaders.finish:
                     break
+                elif self.space_invaders.game_over:
+                    font_size = 50
+                    text = "GAME OVER!"
+                    self.window.draw_text(
+                        text,
+                        size=font_size,
+                        color="red",
+                        x=(self.window.width / 2) - 150,
+                        y=self.window.height / 2 - font_size / 2
+                    )
+                elif self.space_invaders.win:
+                    font_size = 50
+                    text = "YOU WON!"
+                    self.window.draw_text(
+                        text,
+                        size=font_size,
+                        color="red",
+                        x=(self.window.width / 2) - 140,
+                        y=self.window.height / 2 - font_size / 2
+                    )
                 self.window.update()
 
         if self.mouse.is_over_object(self.difficulty_button) and self.mouse.is_button_pressed(1):

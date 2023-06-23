@@ -3,10 +3,10 @@ from PPlay.window import Window
 
 
 class Projectile(Sprite):
-    def __init__(self, window: Window, velocity: int = 500):
+    def __init__(self, space_invaders, velocity: int = 500):
         super().__init__("./assets/projectile.png")
         self.velocity = velocity
-        self.window = window
+        self.window = space_invaders.window
 
-    def update(self):
+    def move(self):
         self.y -= self.velocity * self.window.delta_time()
