@@ -35,22 +35,34 @@ class MainMenu:
                 if self.space_invaders.finish:
                     break
                 elif self.space_invaders.game_over:
-                    font_size = 50
-                    text = "GAME OVER!"
+                    font_size_header = 50
+                    font_size_body = 30
                     self.window.draw_text(
-                        text,
-                        size=font_size,
+                        "GAME OVER!",
+                        size=font_size_header,
                         color="red",
                         x=(self.window.width / 2) - 150,
-                        y=self.window.height / 2 - font_size / 2
+                        y=self.window.height / 2 - font_size_header / 2
                     )
+                    self.window.draw_text(
+                        "press esc to leave",
+                        size=font_size_body,
+                        color="red",
+                        x=(self.window.width / 2) - 120,
+                        y=self.window.height / 2 - font_size_body / 2 + font_size_body * 2
+                    )
+
+                    if self.keyboard.key_pressed("ESC"):
+                        self.space_invaders = SpaceInvaders(self.window, self.mouse, self.keyboard)
+                        break
+
                 elif self.space_invaders.win:
                     font_size = 50
                     text = "YOU WON!"
                     self.window.draw_text(
                         text,
                         size=font_size,
-                        color="red",
+                        color="blue",
                         x=(self.window.width / 2) - 140,
                         y=self.window.height / 2 - font_size / 2
                     )

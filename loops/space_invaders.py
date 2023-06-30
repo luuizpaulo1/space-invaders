@@ -1,5 +1,6 @@
 import itertools
 from datetime import datetime
+from random import randint
 
 from PPlay.gameimage import GameImage
 from PPlay.keyboard import Keyboard
@@ -17,13 +18,14 @@ class SpaceInvaders:
         self.background = GameImage("./assets/background.png")
         self.ship = Ship(self, shoot_cadence=1000)
 
-        self.ship.set_position((self.background.width / 2) - (self.ship.width / 2), self.background.height * 7 / 8)
+        self.ship.centralize()
 
         self.finish = False
         self.game_over = False
         self.win = False
 
         self.projectiles = []
+        self.enemy_projectiles = []
 
         self.n_rows_enemies = 3
         self.n_columns_enemies = 5
@@ -68,6 +70,26 @@ class SpaceInvaders:
             if self.projectiles[index_projectile].y < 0:
                 self.projectiles.pop(index_projectile)
 
+    def expire_enemy_projectiles(self):
+        for index_projectile in range(len(self.enemy_projectiles) - 1, -1, -1):
+            enemy_projectile = self.enemy_projectiles[index_projectile]
+            next_projectile = False
+            if not self.ship.is_invincible:
+                for index_enemy in range(len(list(self.enemies_1d)) - 1, -1, -1):
+                    if enemy_projectile.collided(self.ship):
+                        self.enemy_projectiles.pop(index_projectile)
+                        self.ship.lives -= 1
+                        self.ship.set_invincible()
+                        self.ship.centralize()
+                        next_projectile = True
+                        break
+
+            if next_projectile:
+                continue
+
+            if self.enemy_projectiles[index_projectile].y > self.window.height:
+                self.enemy_projectiles.pop(index_projectile)
+
     def expire_enemies(self):
         for i in range(len(self.enemies) - 1, -1, -1):
             for j in range(len(self.enemies[i]) - 1, -1, -1):
@@ -90,7 +112,8 @@ class SpaceInvaders:
             enemy_x = 1
             row = []
             for j in range(n_columns):
-                new_enemy = Enemy(self)
+                shoot_reload_time = randint(2, 5)
+                new_enemy = Enemy(self, shoot_reload_time=shoot_reload_time)
                 new_enemy.set_position(enemy_x, enemy_y)
                 row.append(new_enemy)
                 enemy_x += spacing_width
@@ -112,8 +135,11 @@ class SpaceInvaders:
     def show_score(self):
         self.window.draw_text(f"SCORE: {str(self.score)}", color="red", size=20, x=self.window.width - 130, y=0)
 
+    def show_lives(self):
+        self.window.draw_text(f"LIVES: {str(self.ship.lives)}", color="red", size=20, x=self.window.width - 100, y=self.window.height - 40)
+
     def loop(self):
-        if self.game_over or self.win:
+        if self.win or self.game_over:
             return
 
         self.count_fps()
@@ -123,17 +149,25 @@ class SpaceInvaders:
             self.projectiles.append(projectile)
 
         self.expire_projectiles()
+        self.expire_enemy_projectiles()
         self.expire_enemies()
 
         self.background.draw()
-        self.ship.draw()
+        if self.ship.show:
+            self.ship.draw()
 
         for projectile in self.projectiles:
-            projectile.move()
+            projectile.action()
             projectile.draw()
 
+        for enemy_projectile in self.enemy_projectiles:
+            enemy_projectile.action()
+            enemy_projectile.draw()
+
         for enemy in self.enemies_1d:
-            enemy.move()
+            enemy_projectile = enemy.action()
+            if enemy_projectile:
+                self.enemy_projectiles.append(enemy_projectile)
             enemy.draw()
 
         if any([enemy.is_touching_the_left_wall for enemy in self.enemies_1d]):
@@ -149,6 +183,9 @@ class SpaceInvaders:
         if any([enemy.is_touching_the_ship for enemy in self.enemies_1d]):
             self.game_over = True
 
+        if not self.ship.lives:
+            self.game_over = True
+
         if not self.enemies:
             self.win = True
 
@@ -157,3 +194,4 @@ class SpaceInvaders:
 
         self.show_fps()
         self.show_score()
+        self.show_lives()

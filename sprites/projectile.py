@@ -8,5 +8,5 @@ class Projectile(Sprite):
         self.velocity = velocity
         self.window = space_invaders.window
 
-    def move(self):
+    def action(self):
         self.y -= self.velocity * self.window.delta_time()
