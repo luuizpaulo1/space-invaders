@@ -3,15 +3,19 @@ from PPlay.keyboard import Keyboard
 from PPlay.mouse import Mouse
 from PPlay.sprite import Sprite
 from PPlay.window import Window
+from db import DB, UserScore
 from loops.difficulty_menu import DifficultyMenu
+from loops.ranking_menu import RankingMenu
 from loops.space_invaders import SpaceInvaders
 
 
 class MainMenu:
-    def __init__(self, window: Window, mouse: Mouse, keyboard: Keyboard):
+    def __init__(self, window: Window, mouse: Mouse, keyboard: Keyboard, database: DB):
         self.window = window
         self.mouse = mouse
         self.keyboard = keyboard
+        self.database = database
+
         self.background = GameImage("./assets/background.png")
         self.start = Sprite("./assets/start.png")
         self.difficulty_button = Sprite("./assets/difficulty.png")
@@ -25,7 +29,26 @@ class MainMenu:
         self.exit_button.set_position((self.background.width / 2) - (self.exit_button.width / 2), 550)
 
         self.diff_menu = DifficultyMenu(self.window, self.mouse, self.keyboard)
+        self.ranking_menu = RankingMenu(self.window, self.mouse, self.keyboard, self.database)
         self.space_invaders = SpaceInvaders(self.window, self.mouse, self.keyboard)
+
+    def draw_game_over(self):
+        font_size_header = 50
+        font_size_body = 30
+        self.window.draw_text(
+            "GAME OVER!",
+            size=font_size_header,
+            color="red",
+            x=(self.window.width / 2) - 150,
+            y=self.window.height / 2 - font_size_header / 2
+        )
+        self.window.draw_text(
+            "type your name in the terminal",
+            size=font_size_body,
+            color="red",
+            x=170,
+            y=self.window.height / 2 - font_size_body / 2 + font_size_body * 2
+        )
 
     def loop(self):
         if self.mouse.is_over_object(self.start) and self.mouse.is_button_pressed(1):
@@ -35,26 +58,12 @@ class MainMenu:
                 if self.space_invaders.finish:
                     break
                 elif self.space_invaders.game_over:
-                    font_size_header = 50
-                    font_size_body = 30
-                    self.window.draw_text(
-                        "GAME OVER!",
-                        size=font_size_header,
-                        color="red",
-                        x=(self.window.width / 2) - 150,
-                        y=self.window.height / 2 - font_size_header / 2
-                    )
-                    self.window.draw_text(
-                        "press esc to leave",
-                        size=font_size_body,
-                        color="red",
-                        x=(self.window.width / 2) - 120,
-                        y=self.window.height / 2 - font_size_body / 2 + font_size_body * 2
-                    )
-
-                    if self.keyboard.key_pressed("ESC"):
-                        self.space_invaders = SpaceInvaders(self.window, self.mouse, self.keyboard)
-                        break
+                    self.draw_game_over()
+                    self.window.update()
+                    score = UserScore(input("name: "), score=self.space_invaders.score)
+                    self.database.save_user_score(score)
+                    self.space_invaders = SpaceInvaders(self.window, self.mouse, self.keyboard)
+                    break
 
                 elif self.space_invaders.win:
                     font_size = 50
@@ -77,8 +86,12 @@ class MainMenu:
                 self.window.update()
 
         if self.mouse.is_over_object(self.ranking_button) and self.mouse.is_button_pressed(1):
-            # see ranking menu
-            ...
+            while True:
+                self.ranking_menu.finish = False
+                self.ranking_menu.loop()
+                if self.ranking_menu.finish:
+                    break
+                self.window.update()
 
         if self.mouse.is_over_object(self.exit_button) and self.mouse.is_button_pressed(1):
             self.finish = True

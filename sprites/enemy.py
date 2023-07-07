@@ -6,7 +6,7 @@ from sprites.enemy_projectile import EnemyProjectile
 
 
 class Enemy(Sprite):
-    def __init__(self, space_invaders, velocity: int = 250, health=1, shoot_reload_time: int = 5):
+    def __init__(self, space_invaders, velocity: int = 150, health=1, shoot_reload_time: int = 5):
         super().__init__("./assets/enemy.png")
         self.space_invaders = space_invaders
         self.velocity = velocity
@@ -33,7 +33,7 @@ class Enemy(Sprite):
         now = datetime.now()
         elapsed_since_last_shoot = now - self.last_shoot
 
-        minimum_timedelta = timedelta(seconds=self.shoot_reload_time)
+        minimum_timedelta = timedelta(milliseconds=self.shoot_reload_time)
 
         if not self.last_shoot or elapsed_since_last_shoot > minimum_timedelta:
             projectile = EnemyProjectile(self.space_invaders)

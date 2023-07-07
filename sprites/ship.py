@@ -14,7 +14,7 @@ class Ship(Sprite):
         self.keyboard = space_invaders.keyboard
         self.last_shoot = None
         self.shoot_cadence = shoot_cadence  # shoots per minute
-        self.lives = 1
+        self.lives = 3
         self.is_invincible = False
         self.last_invincible_time = None
         self.invincible_time = 2

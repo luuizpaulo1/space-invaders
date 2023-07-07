@@ -16,7 +16,7 @@ class SpaceInvaders:
         self.mouse = mouse
         self.keyboard = keyboard
         self.background = GameImage("./assets/background.png")
-        self.ship = Ship(self, shoot_cadence=1000)
+        self.ship = Ship(self, shoot_cadence=180)
 
         self.ship.centralize()
 
@@ -30,7 +30,8 @@ class SpaceInvaders:
         self.n_rows_enemies = 3
         self.n_columns_enemies = 5
         self.enemy_dummy = Enemy(self)
-        self.enemies = self.create_enemies(self.n_rows_enemies, self.n_columns_enemies)
+        self.difficulty_multiplier = 1
+        self.enemies = self.create_enemies(self.n_rows_enemies, self.n_columns_enemies, self.difficulty_multiplier)
 
         self.fps_counter = 0
         self.fps_display = 0
@@ -95,11 +96,11 @@ class SpaceInvaders:
             for j in range(len(self.enemies[i]) - 1, -1, -1):
                 if self.enemies[i][j].health <= 0:
                     self.enemies[i].pop(j)
-                    self.score += 50 * (self.n_rows_enemies - i)
+                    self.score += int(50 * (self.n_rows_enemies - i) * self.difficulty_multiplier)
             if not self.enemies[i]:
                 self.enemies.pop(i)
 
-    def create_enemies(self, n_rows: int, n_columns: int):
+    def create_enemies(self, n_rows: int, n_columns: int, difficulty_multiplier: float):
         enemy_width = self.enemy_dummy.width
         enemy_height = self.enemy_dummy.height
 
@@ -112,8 +113,9 @@ class SpaceInvaders:
             enemy_x = 1
             row = []
             for j in range(n_columns):
-                shoot_reload_time = randint(2, 5)
-                new_enemy = Enemy(self, shoot_reload_time=shoot_reload_time)
+                shoot_reload_time = int(randint(3000, 5000) / difficulty_multiplier)
+                enemy_velocity = int(150 * difficulty_multiplier)
+                new_enemy = Enemy(self, shoot_reload_time=shoot_reload_time, velocity=enemy_velocity)
                 new_enemy.set_position(enemy_x, enemy_y)
                 row.append(new_enemy)
                 enemy_x += spacing_width
@@ -187,7 +189,12 @@ class SpaceInvaders:
             self.game_over = True
 
         if not self.enemies:
-            self.win = True
+            self.difficulty_multiplier += 0.5
+            self.enemies = self.create_enemies(
+                self.n_rows_enemies,
+                self.n_columns_enemies,
+                difficulty_multiplier=self.difficulty_multiplier
+            )
 
         if self.keyboard.key_pressed("ESC"):
             self.finish = True
